@@ -1,0 +1,50 @@
+﻿@model List<StudentMarksWeb.Models.Student>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Student Marks</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 40px;
+        }
+
+        table {
+            width: 70%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+
+        .low-average {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h2>Student Marks Report</h2>
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Marks</th>
+            <th>Average</th>
+        </tr>
+
+        @foreach (var student in Model)
+        {
+            var avg = student.GetAverage();
+            <tr class="@(avg < 40 ? "low-average" : "")">
+                <td>@student.Name</td>
+                <td>@string.Join(", ", student.Marks)</td>
+                <td>@avg.ToString("F2")</td>
+            </tr>
+        }
+    </table>
+</body>
+</html>
