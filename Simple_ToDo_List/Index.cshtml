@@ -1,0 +1,129 @@
+﻿@model List<ToDoApp.Models.ToDoItem>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>To-Do List</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 40px;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"], input[type="datetime-local"] {
+            padding: 5px;
+            margin-right: 10px;
+        }
+
+        button {
+            margin-left: 5px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        li {
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        .completed {
+            text-decoration: line-through;
+            color: gray;
+            background-color: #f2f2f2;
+        }
+
+        .overdue {
+            background-color: #ffe5e5;
+            border-left: 5px solid red;
+        }
+
+        small {
+            display: block;
+            margin-bottom: 4px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <h2>📝 To-Do List</h2>
+
+    <!-- Add Task Form -->
+    <form method="post" asp-action="Add">
+        <input type="text" name="task" placeholder="Enter task..." required />
+        <input type="datetime-local" name="dueAt" />
+        <button type="submit">Add</button>
+    </form>
+
+    <!-- Task List -->
+    <div id="todo-container">
+        <ul>
+            @foreach (var item in Model)
+            {
+                var dueFormatted = item.DueAt?.ToString("dd MMM yyyy hh:mm tt") ?? "No due time";
+                <li data-id="@item.Id"
+                    data-due="@item.DueAt?.ToString("o")"
+                    data-completed="@item.IsCompleted.ToString().ToLower()"
+                    class="@(item.IsCompleted ? "completed" : "")">
+                    <strong>@item.Task</strong><br />
+                    <small>Added: @item.CreatedAt.ToString("dd MMM yyyy hh:mm tt")</small>
+                    <small>Due: @dueFormatted</small>
+                    <span class="overdue-label" style="color:red; font-weight:bold;"></span>
+
+                    <!-- Toggle -->
+                    <form method="post" asp-action="Toggle" style="display:inline">
+                        <input type="hidden" name="id" value="@item.Id" />
+                        <button type="submit">
+                            @(item.IsCompleted ? "Undo" : "Done")
+                        </button>
+                    </form>
+
+                    <!-- Delete -->
+                    <form method="post" asp-action="Delete" style="display:inline">
+                        <input type="hidden" name="id" value="@item.Id" />
+                        <button type="submit">Delete</button>
+                    </form>
+                </li>
+            }
+        </ul>
+    </div>
+
+    <!-- Auto-Refresh Overdue Checker -->
+    <script>
+        function checkOverdue() {
+            const now = new Date();
+            document.querySelectorAll("li").forEach(li => {
+                const due = li.getAttribute("data-due");
+                const completed = li.getAttribute("data-completed") === "true";
+                const overdueLabel = li.querySelector(".overdue-label");
+
+                if (due && !completed) {
+                    const dueTime = new Date(due);
+                    if (dueTime < now) {
+                        li.classList.add("overdue");
+                        overdueLabel.textContent = "⏰ Overdue!";
+                        // Play alarm sound
+                        if (!li.classList.contains("alarm-played")) {
+                            const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+                            audio.play();
+                            li.classList.add("alarm-played");
+                        }
+                    }
+                }
+            });
+        }
+
+        setInterval(checkOverdue, 3000); // Check every 3 seconds
+        window.onload = checkOverdue;
+    </script>
+</body>
+</html>
